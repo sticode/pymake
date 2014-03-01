@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="StiUniverse" />
+		<Option pch_mode="2" />
+		<Option compiler="mingww64i686" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/StiUniverse" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Debug/" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="mingww64i686" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-DDEBUG" />
+				</Compiler>
+				<Linker>
+					<Add directory="../stigame/bin/Debug/" />
+				</Linker>
+				<ExtraCommands>
+					<Add after="cmd /c python ../copy_bin.py debug" />
+					<Add after="cmd /c python ../build_assets.py debug" />
+				</ExtraCommands>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/StiUniverse" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Release/" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="mingww64i686" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-DRELEASE" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add directory="../stigame/bin/Release/" />
+				</Linker>
+				<ExtraCommands>
+					<Add after="cmd /c python ../copy_bin.py release" />
+				</ExtraCommands>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-std=c++11" />
+			<Add option="-Wall" />
+			<Add directory="../include/SDL2" />
+			<Add directory="../stigame/" />
+		</Compiler>
+		<Linker>
+			<Add option="-lmingw32" />
+			<Add option="-lSDL2main" />
+			<Add option="-lSDL2" />
+			<Add option="-lSDL2_image" />
+			<Add option="-lSDL2_ttf" />
+			<Add option="-lSDL2_gfx" />
+			<Add option="-lStiGame" />
+			<Add directory="../lib/" />
+		</Linker>
+		<Unit filename="AssetGenerator.cpp" />
+		<Unit filename="AssetGenerator.h" />
+		<Unit filename="BatVessel.cpp" />
+		<Unit filename="BatVessel.h" />
+		<Unit filename="BigOrangeMissile.cpp" />
+		<Unit filename="BigOrangeMissile.h" />
+		<Unit filename="GameActionFactory.cpp" />
+		<Unit filename="GameActionFactory.h" />
+		<Unit filename="GameOverlay.cpp" />
+		<Unit filename="GameOverlay.h" />
+		<Unit filename="GreenMissile.cpp" />
+		<Unit filename="GreenMissile.h" />
+		<Unit filename="MainMenuState.cpp" />
+		<Unit filename="MainMenuState.h" />
+		<Unit filename="MainState.cpp" />
+		<Unit filename="MainState.h" />
+		<Unit filename="MissileFactory.cpp" />
+		<Unit filename="MissileFactory.h" />
+		<Unit filename="MissileThrower.cpp" />
+		<Unit filename="MissileThrower.h" />
+		<Unit filename="RedMissile.cpp" />
+		<Unit filename="RedMissile.h" />
+		<Unit filename="SpaceHud.cpp" />
+		<Unit filename="SpaceHud.h" />
+		<Unit filename="SpaceMapFile.cpp" />
+		<Unit filename="SpaceMapFile.h" />
+		<Unit filename="SpaceVessel.cpp" />
+		<Unit filename="SpaceVessel.h" />
+		<Unit filename="UnitMovementAction.cpp" />
+		<Unit filename="UnitMovementAction.h" />
+		<Unit filename="main.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
