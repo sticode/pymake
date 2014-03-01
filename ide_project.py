@@ -51,6 +51,7 @@ class ide_parser:
         self.ide = None
         self.objects = []
         self.builds = []
+        self.project_name = None
         #.
         #..
         #...
@@ -59,7 +60,8 @@ class ide_parser:
         self.ide = None
         self.objects = []
         self.builds = []
-
+        self.project_name = None
+        
     def add_include(self, inc, build_name = 'ALL'):
 
         if build_name == 'ALL':
@@ -126,6 +128,24 @@ class codeblock_parser(ide_parser):
         self.child_init(proj_file)
         self.ide = 'CodeBlocks'
 
+    def create_builder(self, compiler, build_name):
+        
+        build = self.get_build(build_name)
+        if not build == None:
+            build.fix_output()
+            compiler.reset()
+            compiler.includes = build.includes
+            compiler.link_args = build.link_args
+            compiler.objs_prefix = build.obj_args
+        else:
+            return None
+        
+        builder = make.build_project(self.project_name, compiler, build.name)
+        builder.output = build.output
+        builder.objs = self.objects
+        
+        return builder
+        
     def parse(self):
         #parsing codeblock xml
         tree = ET.parse(self.proj_file)
@@ -136,7 +156,7 @@ class codeblock_parser(ide_parser):
                 for pchild in child:
                     if pchild.tag == 'Build':
                         self.read_build(pchild)
-                    if pchild.tag == 'Compiler':
+                    elif pchild.tag == 'Compiler':
                         for cc in pchild:
                             if cc.tag == 'Add':
                                 for a in cc.attrib:
@@ -146,7 +166,7 @@ class codeblock_parser(ide_parser):
                                     elif a == 'directory':
                                         self.add_include(data)
             
-                    if pchild.tag == 'Linker':
+                    elif pchild.tag == 'Linker':
                         for lc in pchild:
                             if lc.tag == 'Add':
                                 for a in lc.attrib:
@@ -156,7 +176,7 @@ class codeblock_parser(ide_parser):
                                     elif a == 'directory':
                                         self.add_lib_dir(data)
             
-                    if pchild.tag == 'Unit':
+                    elif pchild.tag == 'Unit':
                         for a in pchild.attrib:
                             data = pchild.attrib[a]
                             if a == 'filename':
@@ -168,6 +188,12 @@ class codeblock_parser(ide_parser):
                                     oname = data.split('.')[0]
                                     obj = make.object_info(oname, '.c')
                                     self.objects.append(obj)
+                    elif pchild.tag == 'Option':
+                        for a in pchild.attrib:
+                            data = pchild.attrib[a]
+                            if a == 'title':
+                                self.project_name = data
+                                
                     
     def read_build(self, xml_tag):
             
@@ -215,8 +241,7 @@ class codeblock_parser(ide_parser):
 parser = codeblock_parser("test/sample_codeblocks.cbp")
 
 parser.parse()
-for b in parser.builds:
-    b.fix_output()
-    b.print_data()
-for o in parser.objects:
+builder = parser.create_builder(make.compiler(), "Release")
+
+for o in builder.objs:
     print o.name

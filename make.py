@@ -128,7 +128,7 @@ class assets_copy:
         return False
         
 
-class compiler_info:
+class compiler:
 
     def __init__(self):
         self.gpp = "i686-w64-mingw32-g++" #C++ Compiler
@@ -196,19 +196,20 @@ class object_info:
 
 class build_project:
 
-    def __init__(self, projname, cppinfo, build = "Debug"):
-        self.cppinfo = cppinfo
+    def __init__(self, projname, compiler, build = "Debug"):
+        self.verbose_lvl = 5 #todo
+        self.compiler = compiler
         self.projname = projname
         self.objs = []
         self.obj_dir = os.path.join("obj", build)
         self.bin_dir = os.path.join(projname, "bin", build)
         self.build = build
         self.bin_objs = []
-        self.links = cppinfo.links
+        self.links = compiler.links
         self.output = ""
-        self.objs_prefix = cppinfo.objs_prefix
+        self.objs_prefix = compiler.objs_prefix
 
-        self.log_name = projname+"-build-"+cppinfo.build_num+"-"+build+"-log.html";
+        self.log_name = projname+"-build-"+compiler.build_num+"-"+build+"-log.html";
 
         if not os.path.exists('build_logs'):
             os.mkdir('build_logs')
@@ -262,15 +263,15 @@ class build_project:
             #building args
             args = []
             if o.otype == '.cpp':
-                args.append(self.cppinfo.gpp)
+                args.append(self.compiler.gpp)
             elif o.otype == '.c':
-                args.append(self.cppinfo.gcc)
+                args.append(self.compiler.gcc)
                 
             print "Building "+o.name+" with "+args[0]
             for a in self.objs_prefix:
                 args.append(a)
 
-            for i in self.cppinfo.includes:
+            for i in self.compiler.includes:
                 args.append("-I"+i)
 
             args.append("-c")
@@ -323,9 +324,9 @@ class build_project:
         #building args
 
         args = []
-        args.append(self.cppinfo.gpp)
+        args.append(self.compiler.gpp)
 
-        for l in self.cppinfo.link_args:
+        for l in self.compiler.link_args:
             args.append(l)
 
         for o in self.bin_objs:
@@ -334,7 +335,7 @@ class build_project:
         args.append("-o")
         args.append(self.output)
 
-        for l in self.cppinfo.links:
+        for l in self.compiler.links:
             args.append("-l"+l)
 
         cmd = ""
