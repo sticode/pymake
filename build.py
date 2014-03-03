@@ -118,11 +118,11 @@ if __name__ == '__main__':
         if not ia == 0:
             
             if args.startswith('-CPP:'):
-                compiler.self.gpp = args[5:]
+                compiler.gpp = args[5:]
             elif args.startswith('-CC:'):
-                compiler.self.gcc = args[4:]
+                compiler.gcc = args[4:]
             elif args.startswith('-CPATH:'):
-                compiler.self.gpp_path = args[7:]
+                compiler.gpp_path = args[7:]
             elif args.startswith('-P:'):
                 pfile = args[3:]
             elif args.startswith('-B:'):
