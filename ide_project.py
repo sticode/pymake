@@ -141,7 +141,7 @@ class codeblock_parser(ide_parser):
 
     def __init__(self,  proj_file):
         self.child_init(proj_file)
-        self.ide = 'CodeBlocks'
+        self.ide = 'Code::Blocks'
 
     def create_builder(self, compiler, build_name):
         

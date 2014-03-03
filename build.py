@@ -4,10 +4,37 @@ import make
 import sys
 
 
+def build_project(parser, build_name, compiler):
+    
+    print "Compiling project : " + parser.project_name
+    
+    if build_name == None:
+        build_name = 'Release'
+    
+    print "Build Config : " + build_name
+    
+    path = os.path.join(parser.root, "..")
+    os.chdir(path)
+    
+    builder = parser.create_builder(compiler, build_name)
+    
+    if builder == None:
+        print build_name+" not found !"
+        exit()
+    
+    if not builder.build_objects():
+        print "Error building " + parser.project_name
+        exit()
+    if not builder.link():
+        print "Error linking " + parser.project_name
+        exit()
+        
+    print p.name + " builded with success !"
+
 def build_workspace(workspace, build_name, compiler):
     #compiler.set_env()
     
-    print "Compiler workspace : " + workspace.name
+    print "Compiling workspace : " + workspace.name
     
     if build_name == None:
         build_name = 'Release' #need to get first build from projects
@@ -51,6 +78,7 @@ if __name__ == '__main__':
     print "jord52@gmail.com"
     print "-------------------"
     compiler = make.compiler()
+    pack_output = False
     pfile = None
     build_name = None
     build_num = "0"
@@ -72,10 +100,11 @@ if __name__ == '__main__':
             elif args.startswith('-BN:'):
                 build_num = args[4:]
                 compiler.build_num = build_num
+            elif args.startswith("-PACK"):
+                pack_output = True
         
         ia = ia + 1
     
-    print pfile
     compiler.set_env()
     
     if pfile == None:
@@ -86,6 +115,8 @@ if __name__ == '__main__':
         #code block projects file
         parser = ide_project.codeblock_parser(pfile)
         parser.parse()
+        
+        build_project(parser, build_name, compiler)
         
     elif pfile.endswith('.workspace'):
         #workspace file
