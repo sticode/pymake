@@ -1,5 +1,6 @@
 #ide project file parser
 import xml.etree.ElementTree as ET
+import os
 import make
 #to do:
 #generate a build_project
@@ -20,7 +21,12 @@ class build_target:
     def fix_output(self):
         if self.type == 1:
             self.output += ".exe"
-    
+        elif self.type == 3:
+            #dynamic library
+            self.link_args.append("-Wl,--output-def=bin\\"+self.name+"\\lib"+os.path.basename(self.output)+".def")
+            self.link_args.append("-Wl,--out-implib=bin\\"+self.name+"\\lib"+os.path.basename(self.output)+".a")
+            self.link_args.append("-shared")
+            self.output += ".dll"
     def print_data(self):
         #debug purpose
         print "Build Target : " + self.name
@@ -52,6 +58,7 @@ class ide_parser:
         self.objects = []
         self.builds = []
         self.project_name = None
+        self.root = None
         #.
         #..
         #...
@@ -61,6 +68,7 @@ class ide_parser:
         self.objects = []
         self.builds = []
         self.project_name = None
+        self.root = os.path.dirname(proj_file)
         
     def add_include(self, inc, build_name = 'ALL'):
 
@@ -127,31 +135,7 @@ class project:
         self.name = name
         self.parser = parser
         self.depends = []
-        self.order = 0
-
-class workspace_parser:
-    
-    def __init__(self, work_file):
-        self.wspace = work_file
-        self.projects = []
-    
-    def child_init(self):
-        self.projects = []
-    
-    def parse(self):
-        return None
-    
-    def get_project(self, name):
-        
-        for p in self.projects:
-            if p.name == name:
-                return p
-            
-        return None
-    
-    def resolve_order(self):
-        #todo
-        return None
+        self.order = -1
 
 class codeblock_parser(ide_parser):
 
@@ -168,6 +152,7 @@ class codeblock_parser(ide_parser):
             compiler.includes = build.includes
             compiler.link_args = build.link_args
             compiler.objs_prefix = build.obj_args
+            compiler.lib_dirs = build.lib_dirs
         else:
             return None
         
@@ -268,22 +253,113 @@ class codeblock_parser(ide_parser):
                                 
 
 
+class workspace_parser:
+    
+    def __init__(self, work_file):
+        self.wspace = work_file
+        self.projects = []
+        self.name = ""
+        self.root = None
+    
+    def child_init(self):
+        self.projects = []
+        self.name = ""
+        self.root = None
+    def parse(self):
+        return None
+    
+    def get_project(self, name):
+        
+        for p in self.projects:
+            if p.name == name:
+                return p
+            
+        return None
+    
+    def resolve_order(self):
+        
+        order = 1
+        
+        for p in self.projects:
+            
+            if len(p.depends) == 0:
+                p.order = order
+                order = order + 1
+            else:
+                continue
+            
+        for p in self.projects:
+            if p.order == -1:
+                p.order = order
+                order = order + 1
+                
+            else:
+                continue
+
+    def get_projects(self):
+        
+        projs = []
+        
+        index = 1
+        
+        while not len(projs) == len(self.projects):
+            
+            for p in self.projects:
+                if p.order == index:
+                    projs.append(p)
+                    index = index + 1
+        
+        
+        return projs
+            
+            
+
 class codeblock_workspace_parser(workspace_parser):
     
     def __init__(self, wspace):
         self.wspace = wspace
         self.child_init()
+        self.root = os.path.dirname(self.wspace)
+
         
     def parse(self):
         
-        tree = ET.parse()
+        tree = ET.parse(self.wspace)
+        root = tree.getroot()
+
+        for child in root:
+            self.name = child.attrib['title']
+            
+            for wc in child:
+                if wc.tag == 'Project':
+                    self.read_project(wc)
+    
+    def read_project(self, pchild):
         
+        proj_file = None
+        parser = None
+        depends = []
+        
+        for a in pchild.attrib:
+            data = pchild.attrib[a]
+            
+            if a == 'filename':
+                proj_file = data
+        
+        for pc in pchild:
+            
+            if pc.tag == 'Depends':
+                depends.append(pc.attrib['filename'])
+        
+        
+        name = os.path.basename(proj_file)
+        name = name.split('.')[0]
 
-#testing zone
-parser = codeblock_parser("test/sample_codeblocks.cbp")
+        if len(self.root) > 0:
+            proj_file = os.path.join(self.root, proj_file)
 
-parser.parse()
-builder = parser.create_builder(make.compiler(), "Release")
+        proj = project(name, codeblock_parser(os.path.abspath(proj_file)))
+        proj.depends = depends
+        
+        self.projects.append(proj)
 
-for o in builder.objs:
-    print o.name

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="StiUniverse">
-		<Project filename="StiGame/StiGame.cbp" />
 		<Project filename="StiUniverse/StiUniverse.cbp">
 			<Depends filename="StiGame/StiGame.cbp" />
 		</Project>
 		<Project filename="assettools/assettools.cbp">
 			<Depends filename="StiGame/StiGame.cbp" />
 		</Project>
+		<Project filename="StiGame/StiGame.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

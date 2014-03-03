@@ -139,6 +139,7 @@ class compiler:
         self.link_args = [] #linker arguments
         self.objs_prefix = [] #compiler arguments
         self.build_num = "0" #build number
+        self.lib_dirs = []
         
         self.read_settings()
         
@@ -151,11 +152,11 @@ class compiler:
             
             for l in lines:
                 if l.startswith("G++:"):
-                    self.gpp = l[4:]
-                elif l.startwith("PATH:"):
-                    self.gpp_path = l[5:]
+                    self.gpp = l[4:].strip()
+                elif l.startswith("PATH:"):
+                    self.gpp_path = l[5:].strip()
                 elif l.startswith("GCC:"):
-                    self.gcc = l[4:]
+                    self.gcc = l[4:].strip()
 
         else:
             self.write_settings()
@@ -166,9 +167,9 @@ class compiler:
         
         lines = []
         
-        lines.append("G++:"+self.gpp)
-        lines.append("PATH:"+self.gpp_path)
-        lines.append("GCC:"+self.gcc)
+        lines.append("G++:"+self.gpp+"\n")
+        lines.append("PATH:"+self.gpp_path+"\n")
+        lines.append("GCC:"+self.gcc+"\n")
         
         fp.writelines(lines)
         
@@ -179,6 +180,7 @@ class compiler:
         self.links = []
         self.link_args = []
         self.objs_prefix = []
+        self.lib_dirs = []
 
     def set_env(self):
         os.environ["PATH"] += os.pathsep + self.gpp_path
@@ -254,12 +256,13 @@ class build_project:
 
     def build_objects(self):
         build_failed = False
+
         os.chdir(self.projname)
         for o in self.objs:
             fout = os.path.join(self.obj_dir, o.get_o())
             fcpp = os.path.join(o.get_src())
             fcpp = os.path.abspath(fcpp)
-
+            print "Current dir " + os.getcwd()
             #building args
             args = []
             if o.otype == '.cpp':
@@ -275,18 +278,24 @@ class build_project:
                 args.append("-I"+i)
 
             args.append("-c")
-            args.append(fcpp)
+            
+            if not fcpp.find(' ') == -1:
+                fcpp = "\"" + fcpp +  "\""
+
             args.append("-o")
             args.append(fout)
-
+            
+            args.append(fcpp)
+            
             cmd = ""
 
             for a in args:
                 cmd += a + " "
             print cmd
+ 
             self.log.build_obj(cmd)
             #change this to use subexec
-            p = subprocess.Popen(args , stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True)
 
             line = p.stdout.readline()
 
@@ -326,14 +335,23 @@ class build_project:
         args = []
         args.append(self.compiler.gpp)
 
-        for l in self.compiler.link_args:
-            args.append(l)
 
         for o in self.bin_objs:
             args.append(o)
 
+        for l in self.compiler.lib_dirs:
+            lib = os.path.abspath(l)
+            if not lib.find(' ') == -1 :
+                args.append("\"-L"+lib+"\"")
+            else:
+                args.append("-L"+lib)
+
+        for l in self.compiler.link_args:
+            args.append(l)
+
+
         args.append("-o")
-        args.append(self.output)
+        args.append(os.path.join(self.output))
 
         for l in self.compiler.links:
             args.append("-l"+l)
@@ -385,7 +403,7 @@ class build_file:
 
     def __init__(self, path):
         self.path = path
-        self.info = cpp_info()
+        self.info = compiler()
         self.project = ""
         self.output = ""
         self.build = ""
