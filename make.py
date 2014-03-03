@@ -103,69 +103,6 @@ class subexec:
             self.stderr += line
             line = p.stderr.readline()
         
-class dll_copy:
-    def __init__(self):
-        self.dlldir = "bin"
-        self.deploy = "deploy"
-    def copy(self):
-        dlls = os.listdir(self.dlldir)
-        for d in dlls:
-            if d.endswith(".dll"):
-                print "Copying : "+d
-                shutil.copy(os.path.join(self.dlldir, d), os.path.join(self.deploy, d))
-    
-
-class assets_copy:
-
-    def __init__(self, src, dst):
-        self.src = src
-        self.dst = dst
-
-    def copy(self):
-        files = os.listdir(self.src)
-
-        if not os.path.exists(self.dst):
-            os.makedirs(self.dst)
-
-        for f in files:
-            if os.path.isfile(os.path.join(self.src, f)):
-                dst = os.path.join(self.dst, f)
-                src = os.path.join(self.src, f)
-                if not self.ignore_file(f):
-                    print src + " -> " + dst
-                    shutil.copy(src, dst)
-                
-            elif os.path.isdir(os.path.join(self.src, f)):
-                self.copydir(f)
-
-    def copydir(self, dname):
-
-        files = os.listdir(os.path.join(self.src, dname))
-        dstdir = os.path.join(self.dst, dname)
-
-        if not os.path.exists(dstdir):
-            os.makedirs(dstdir)
-        
-        for f in files:
-            fpath = os.path.join(self.src, dname, f)
-            if os.path.isfile(fpath):
-                dst = os.path.join(dstdir, f)
-                src = os.path.join(self.src, dname, f)
-                if not self.ignore_file(f):
-                    print src + " -> " + dst
-                    shutil.copy(src, dst)
-            elif os.path.isdir(fpath):
-                self.copydir(os.path.join(dname, f))
-
-    def ignore_file(self, fname):
-        if fname.endswith('.bspr'):
-            return True
-        elif fname.endswith('.bdspr'):
-            return True
-        elif fname.endswith('.res'):
-            return True
-        return False
-        
 
 class compiler:
 
@@ -238,7 +175,7 @@ class object_info:
 class build_project:
 
     def __init__(self, projname, compiler, build = "Debug"):
-        self.verbose_lvl = 5 #todo
+        self.verbose_lvl = 1 #todo
         self.compiler = compiler
         self.projname = projname
         self.objs = []
@@ -301,7 +238,6 @@ class build_project:
             fout = os.path.join(self.obj_dir, o.get_o())
             fcpp = os.path.join(o.get_src())
             fcpp = os.path.abspath(fcpp)
-            print "Current dir " + os.getcwd()
             #building args
             args = []
             if o.otype == '.cpp':
@@ -321,6 +257,7 @@ class build_project:
             if not fcpp.find(' ') == -1:
                 fcpp = "\"" + fcpp +  "\""
 
+
             args.append("-o")
             args.append(fout)
             
@@ -329,8 +266,10 @@ class build_project:
             cmd = ""
 
             for a in args:
-                cmd += a + " "
-            print cmd
+                cmd += a + " " 
+            
+            if self.verbose_lvl > 2:
+                print cmd
  
             self.log.build_obj(cmd)
             #change this to use subexec
@@ -354,8 +293,9 @@ class build_project:
                 self.log.std_err(errtxt)
 
             if build_failed:
-                print "Build failed ! abort..."
                 print errtxt
+                print "---------------------------------------------"
+                print "Build failed ! abort..."
                 self.log.end_proj(False)
                 os.chdir("..")
                 self.log.save()
@@ -402,7 +342,9 @@ class build_project:
 
         self.log.link_proj(cmd)
         print "Linking objects..."
-        print cmd
+        
+        if self.verbose_lvl > 2:
+            print cmd
 
         p = subprocess.Popen(args , stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
@@ -422,10 +364,11 @@ class build_project:
             line = p.stderr.readline()
 
         if not errtxt.find("error:") == -1:
-            print "Linking failed , abort"
             self.log.std_err(errtxt)
             self.log.end_proj(False)
             print errtxt
+            print "------------------------------------------"
+            print "Linking failed , abort"
             os.chdir("..")
             self.log.save()
             return False

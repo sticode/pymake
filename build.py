@@ -3,6 +3,36 @@ import ide_project
 import make
 import sys
 
+class post_script:
+    
+    def __init__(self, script):
+        self.script = script
+    
+    def run(self):
+        
+        fp = open(self.script, 'r')
+        
+        lines = fp.readlines()
+        
+        fp.close()
+        
+        for l in lines:
+            
+            self.exec_line(l)
+        
+    def exec_line(self, line):
+        
+        line = line.strip()
+        
+        if line.startswith('run '):
+            args = line[4:]
+        elif line.startswith('copy '):
+            args = line[5:]
+        elif line.startswith('rm '):
+            args = line[3:]
+        elif line.startswith('pack '):
+            args = line[5:]
+        
 
 def build_project(parser, build_name, compiler):
     
