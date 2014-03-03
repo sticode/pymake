@@ -121,6 +121,37 @@ class ide_parser:
         #create maker
         return None
 
+class project:
+    
+    def __init__(self, name, parser):
+        self.name = name
+        self.parser = parser
+        self.depends = []
+        self.order = 0
+
+class workspace_parser:
+    
+    def __init__(self, work_file):
+        self.wspace = work_file
+        self.projects = []
+    
+    def child_init(self):
+        self.projects = []
+    
+    def parse(self):
+        return None
+    
+    def get_project(self, name):
+        
+        for p in self.projects:
+            if p.name == name:
+                return p
+            
+        return None
+    
+    def resolve_order(self):
+        #todo
+        return None
 
 class codeblock_parser(ide_parser):
 
@@ -235,6 +266,17 @@ class codeblock_parser(ide_parser):
                                     elif a == 'directory':
                                         build.lib_dirs.append(data)
                                 
+
+
+class codeblock_workspace_parser(workspace_parser):
+    
+    def __init__(self, wspace):
+        self.wspace = wspace
+        self.child_init()
+        
+    def parse(self):
+        
+        tree = ET.parse()
         
 
 #testing zone
