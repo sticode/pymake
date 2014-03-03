@@ -136,6 +136,7 @@ if __name__ == '__main__':
         ia = ia + 1
     
     compiler.set_env()
+    compiler.build_num = build_num
     
     if pfile == None:
         print "Invalid project file !"
