@@ -12,12 +12,19 @@ You can compile a project by using build.py
 build.py [args]
 
 Use the following arguments :
+
 -CPP:$BIN_NAME : C++ Compiler
+
 -CC:$BIN_NAME : C Compiler
+
 -CPATH:$PATH : Root path of the Compiler
+
 -P:$PATH_PROJECT : Path to the project file or workspace file
+
 -B:$CONFIG : Build configuration name
+
 -BN:$BUILD_NUM : Specify a build number and name for this compilated project
+
 -PACK : Zip all the compilated project for a release (NOT IMPLEMENTED)
 
 
