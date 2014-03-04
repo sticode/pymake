@@ -380,7 +380,63 @@ class build_project:
 
         self.log.save()
         return True
+
+
+class post_script:
+    
+    def __init__(self, spath):
+        self.path = spath
+        self.working_dir = None
+        self.args = []
+        
+    def run(self):
+        
+        return None
+
+class pymake_file:
+    
+    def __init__(self, fpath):
+        self.path = fpath
+        self.post_script = []
+
+    def read(self):
+        
+        fp = open(fpath, 'r')
+        
+        lines = fp.readlines()
+        
+        fp.close()
+        
+        for l in lines:
+            l = l.strip()
             
+            if l.startswith('run:'):
+                args = l[4:]
+                args = args.split(',')
+                i = 0
+                ps = post_script(args[0])
+                
+                for a in args:
+                    if i == 1:
+                        #working_dir
+                        ps.working_dir = a
+                    else:
+                        ps.args.append(a)
+                    i = i + 1
+                    
+                self.post_script.append(ps)
+                
+        return None
+
+    def do_post_build(self):
+        
+        return None
+    
+    def do_clean(self):
+        
+        return None
+    
+
 class build_file:
 
     def __init__(self, path):

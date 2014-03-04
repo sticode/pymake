@@ -33,6 +33,7 @@ to do
 - IDE Project file parser (CodeBlocks is first to be handled)
 - Verbosity level for building, not showing, they are already logged
 - Embed css style for log
-- compiler settings file
+- compiler settings file -> mostly done
 - ftp uploader for success build
+- directory input, with file scanning, find a *.workspace or *.cbp and a .pymake for setting like post build script
 ...

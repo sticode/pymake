@@ -3,38 +3,32 @@ import ide_project
 import make
 import sys
 
-class post_script:
+
+def search_pymake(dpath):
     
-    def __init__(self, script):
-        self.script = script
+    pymake_f = None
     
-    def run(self):
+    files = os.listdir(dpath)
+    
+    for f in files:
         
-        fp = open(self.script, 'r')
-        
-        lines = fp.readlines()
-        
-        fp.close()
-        
-        for l in lines:
+        if f.endswith(".pymake"):
             
-            self.exec_line(l)
-        
-    def exec_line(self, line):
-        
-        line = line.strip()
-        
-        if line.startswith('run '):
-            args = line[4:]
-        elif line.startswith('copy '):
-            args = line[5:]
-        elif line.startswith('rm '):
-            args = line[3:]
-        elif line.startswith('pack '):
-            args = line[5:]
-        
+            fpath = os.path.join(dpath, f)
+            
+            pymake_f = make.pymake_file(fpath)
+            pymake_f.read()
+    
+    return pymake_f
+            
 
 def build_project(parser, build_name, compiler):
+    
+    
+    fpymake = search_pymake(parser.root)
+    
+    if not fpymake == None:
+        fpymake.do_clean()
     
     print "Compiling project : " + parser.project_name
     
@@ -60,9 +54,16 @@ def build_project(parser, build_name, compiler):
         exit()
         
     print p.name + " builded with success !"
+    
+    if not fpymake == None:
+        fpymake.do_post_build()
 
 def build_workspace(workspace, build_name, compiler):
     #compiler.set_env()
+    
+    fpymake = search_pymake(workspace.root)
+    if not fpymake == None:
+        fpymake.do_clean()
     
     print "Compiling workspace : " + workspace.name
     
@@ -98,6 +99,21 @@ def build_workspace(workspace, build_name, compiler):
         
         print p.name + " builded with success !"
 
+    if not fpymake == None:
+        fpymake.do_post_build()
+
+def print_help():
+    print "---------------------"
+    print "        HELP         "
+    print "---------------------"
+    print "-CPP:$name -> C++ Compiler"
+    print "-CC:$name -> C Compiler"
+    print "-CPATH:$path -> Compiler root path"
+    print "-P:$path -> project path or project file"
+    print "-B:$build -> Build configuration to compile"
+    print "-BN:$build_version -> Build Version"
+    print "-PACK -> zip package of the compiled project (NOT IMPLEMENTED)"
+    print "---------------------"
 
 if __name__ == '__main__':
     #args parsing
@@ -132,6 +148,9 @@ if __name__ == '__main__':
                 compiler.build_num = build_num
             elif args.startswith("-PACK"):
                 pack_output = True
+            elif args.startswith("-HELP"):
+                print_help()
+                exit()
         
         ia = ia + 1
     
@@ -142,19 +161,43 @@ if __name__ == '__main__':
         print "Invalid project file !"
         exit()
     
-    if pfile.endswith('.cbp'):
-        #code block projects file
-        parser = ide_project.codeblock_parser(pfile)
-        parser.parse()
+    if os.path.isdir(pfile):
         
-        build_project(parser, build_name, compiler)
+        files = os.listdir(pfile)
         
-    elif pfile.endswith('.workspace'):
-        #workspace file
-        
-        workspace = ide_project.codeblock_workspace_parser(pfile)
-        workspace.parse()
-        
-        build_workspace(workspace, build_name, compiler)
+        for f in files:
+
+            if f.endswith('.cbp'):
+                parser = ide_project.codeblock_parser(os.path.join(pfile, f))
+                parser.parse()
+            
+                build_project(parser, build_name, compiler)
+                
+            elif f.endswith('.workspace'):
+                #workspace file
+                workspace = ide_project.codeblock_workspace_parser(os.path.join(pfile, f))
+                workspace.parse()
+            
+                build_workspace(workspace, build_name, compiler)
+    else:
+    
+        if pfile.endswith('.cbp'):
+            #code block projects file
+            parser = ide_project.codeblock_parser(pfile)
+            parser.parse()
+            
+            build_project(parser, build_name, compiler)
+            
+        elif pfile.endswith('.workspace'):
+            #workspace file
+            
+            workspace = ide_project.codeblock_workspace_parser(pfile)
+            workspace.parse()
+            
+            
+            
+            
+            
+            build_workspace(workspace, build_name, compiler)
         
     
