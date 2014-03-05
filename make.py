@@ -382,7 +382,7 @@ class build_project:
         return True
 
 
-class post_script:
+class script:
     
     def __init__(self, spath):
         self.path = spath
@@ -397,7 +397,7 @@ class pymake_file:
     
     def __init__(self, fpath):
         self.path = fpath
-        self.post_script = []
+        self.post_scripts = []
 
     def read(self):
         
@@ -410,29 +410,40 @@ class pymake_file:
         for l in lines:
             l = l.strip()
             
-            if l.startswith('run:'):
-                args = l[4:]
+            if l.startswith('post:'):
+                args = l[5:]
                 args = args.split(',')
                 i = 0
-                ps = post_script(args[0])
+                ps = script(args[0])
                 
                 for a in args:
                     if i == 1:
                         #working_dir
                         ps.working_dir = a
-                    else:
+                    elif not i == 0:
                         ps.args.append(a)
                     i = i + 1
                     
-                self.post_script.append(ps)
+                self.post_scripts.append(ps)
+            elif l.startswith("pre:"):
+                args = l[4:]
+                args = args.split(',')
+                i = 0
+                ps = script(args[0])
                 
-        return None
+                for a in args:
+                    if i == 1:
+                        ps.working_dir = a
+                    elif not i == 0:
+                        ps.args.append(a)
+                        
+                    i = i + 1
 
     def do_post_build(self):
         
         return None
     
-    def do_clean(self):
+    def do_pre_build(self):
         
         return None
     

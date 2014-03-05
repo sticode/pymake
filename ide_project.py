@@ -19,6 +19,10 @@ class build_target:
         self.working_dir = None
         self.obj_output = None
     
+    
+    def do_clean(self):
+        print "CLEANING !"
+    
     def fix_output(self):
         if self.type == 1:
             self.output += ".exe"

@@ -28,7 +28,7 @@ def build_project(parser, build_name, compiler):
     fpymake = search_pymake(parser.root)
     
     if not fpymake == None:
-        fpymake.do_clean()
+        fpymake.do_pre_build()
     
     print "Compiling project : " + parser.project_name
     
@@ -45,6 +45,8 @@ def build_project(parser, build_name, compiler):
     if builder == None:
         print build_name+" not found !"
         exit()
+    
+    builder.do_clean()
     
     if not builder.build_objects():
         print "Error building " + parser.project_name
@@ -63,7 +65,7 @@ def build_workspace(workspace, build_name, compiler):
     
     fpymake = search_pymake(workspace.root)
     if not fpymake == None:
-        fpymake.do_clean()
+        fpymake.do_pre_build()
     
     print "Compiling workspace : " + workspace.name
     
@@ -90,6 +92,8 @@ def build_workspace(workspace, build_name, compiler):
             print "Build config not found !"
             exit()
         
+        builder.do_clean()
+        
         if not builder.build_objects():
             print "Error building " + p.name
             exit()
@@ -103,9 +107,9 @@ def build_workspace(workspace, build_name, compiler):
         fpymake.do_post_build()
 
 def print_help():
-    print "---------------------"
+    print "----------------------------------------"
     print "        HELP         "
-    print "---------------------"
+    print "----------------------------------------"
     print "-CPP:$name -> C++ Compiler"
     print "-CC:$name -> C Compiler"
     print "-CPATH:$path -> Compiler root path"
@@ -113,7 +117,7 @@ def print_help():
     print "-B:$build -> Build configuration to compile"
     print "-BN:$build_version -> Build Version"
     print "-PACK -> zip package of the compiled project (NOT IMPLEMENTED)"
-    print "---------------------"
+    print "----------------------------------------"
 
 if __name__ == '__main__':
     #args parsing
@@ -193,9 +197,6 @@ if __name__ == '__main__':
             
             workspace = ide_project.codeblock_workspace_parser(pfile)
             workspace.parse()
-            
-            
-            
             
             
             build_workspace(workspace, build_name, compiler)
