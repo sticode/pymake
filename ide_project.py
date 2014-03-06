@@ -74,6 +74,15 @@ class ide_parser:
         self.builds = []
         self.project_name = None
         self.root = os.path.dirname(proj_file)
+
+    def get_builds(self):
+        
+        builds = []
+        
+        for b in self.builds:
+            builds.append(b.name)
+            
+        return builds
         
     def add_include(self, inc, build_name = 'ALL'):
 
@@ -279,6 +288,22 @@ class workspace_parser:
             if p.name == name:
                 return p
             
+        return None
+    
+    def get_builds(self):
+        
+        if len(self.projects) > 0:
+            return self.projects[0].parser.get_builds()
+        
+        return None
+    
+    
+    def get_project_by_pfile(self, pfile):
+        
+        for p in self.projects:
+            if p.parser.proj_file.endswith(pfile):
+                return p
+        
         return None
     
     def resolve_order(self):

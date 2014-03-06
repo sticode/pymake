@@ -202,6 +202,34 @@ class build_project:
         if not os.path.exists(self.bin_dir):
             os.makedirs(self.bin_dir)
 
+    def do_clean(self):
+        print "Cleaning for " + self.projname
+        clean_dir = os.path.join(self.projname, self.obj_dir)
+        
+        files = os.listdir(clean_dir)
+        
+        for f in files:
+            
+            fpath = os.path.join(clean_dir, f)
+            
+            if self.verbose_lvl >= 3:   
+                print "Deleting : " + f
+                
+            os.remove(fpath)
+        
+        clean_dir = self.bin_dir
+        
+        files = os.listdir(clean_dir)
+        
+        for f in files:
+            
+            fpath = os.path.join(clean_dir, f)
+            
+            if self.verbose_lvl >= 3:
+                print "Deleting : " + f
+                
+            os.remove(fpath)
+
     def scan_files(self):
 
         files = os.listdir(self.projname)
@@ -393,15 +421,19 @@ class script:
         
         return None
 
+
 class pymake_file:
     
     def __init__(self, fpath):
         self.path = fpath
-        self.post_scripts = []
+        self.posts = []
+        self.pres = []
+        self.verbose_lvl = 0
+
 
     def read(self):
         
-        fp = open(fpath, 'r')
+        fp = open(self.path, 'r')
         
         lines = fp.readlines()
         
@@ -424,7 +456,7 @@ class pymake_file:
                         ps.args.append(a)
                     i = i + 1
                     
-                self.post_scripts.append(ps)
+                self.posts.append(ps)
             elif l.startswith("pre:"):
                 args = l[4:]
                 args = args.split(',')
@@ -438,12 +470,46 @@ class pymake_file:
                         ps.args.append(a)
                         
                     i = i + 1
+                    
+                self.pres.append(ps)
+
+    def run_script(self, s):
+        args = []
+        args.append("python")
+        args.append(s.path)
+            
+        for a in s.args:
+            args.append(a)
+            
+        if self.verbose_lvl >= 2:
+            cmd = ""
+            for a in args:
+                cmd = cmd + a + " "
+            print cmd
+            
+        sub = subexec(args)
+        sub.run()
+            
+            
+        if self.verbose_lvl >= 1:
+            print sub.stdout
 
     def do_post_build(self):
         
-        return None
+        if not len(self.posts) == 0:    
+            print "Running post build..."
+        
+        for s in self.posts:
+            self.run_script(s)
+        
     
     def do_pre_build(self):
+        
+        if not len(self.pres) == 0:
+            print "Running pre build..."
+        
+        for s in self.pres:
+            self.run_script(s)
         
         return None
     

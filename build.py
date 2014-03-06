@@ -2,7 +2,8 @@ import os
 import ide_project
 import make
 import sys
-
+import shutil
+import time
 
 def search_pymake(dpath):
     
@@ -22,18 +23,20 @@ def search_pymake(dpath):
     return pymake_f
             
 
-def build_project(parser, build_name, compiler):
-    
+def build_project(parser, build_name, compiler, verbosity):
+    start_tm = time.time()
     
     fpymake = search_pymake(parser.root)
     
     if not fpymake == None:
         fpymake.do_pre_build()
+        fpymake.verbose_lvl = verbosity
     
     print "Compiling project : " + parser.project_name
     
     if build_name == None:
-        build_name = 'Release'
+        b = parser.get_builds()
+        build_name = b[0]
     
     print "Build Config : " + build_name
     
@@ -46,6 +49,7 @@ def build_project(parser, build_name, compiler):
         print build_name+" not found !"
         exit()
     
+    builder.verbose_lvl = verbosity
     builder.do_clean()
     
     if not builder.build_objects():
@@ -55,27 +59,40 @@ def build_project(parser, build_name, compiler):
         print "Error linking " + parser.project_name
         exit()
         
-    print p.name + " builded with success !"
+    print parser.project_name + " builded with success !"
     
     if not fpymake == None:
         fpymake.do_post_build()
+        
+        
+    ts = time.time() - start_tm
+    
+    print "Project builded in " + str(ts) + " sec(s)"
+        
+    print "Build completed !"
 
-def build_workspace(workspace, build_name, compiler):
+def build_workspace(workspace, build_name, compiler, verbosity):
     #compiler.set_env()
+    start_tm = time.time()
     
     fpymake = search_pymake(workspace.root)
     if not fpymake == None:
         fpymake.do_pre_build()
+        fpymake.verbose_lvl = verbosity
     
     print "Compiling workspace : " + workspace.name
     
+    for project in workspace.projects:
+        project.parser.parse()
+    
     if build_name == None:
-        build_name = 'Release' #need to get first build from projects
+        #build_name = 'Release' #need to get first build from projects
+        b = workspace.get_builds()
+        build_name = b[0]
+        
     
     print "Build Config : " + build_name
     
-    for project in workspace.projects:
-        project.parser.parse()
     
     workspace.resolve_order()
     
@@ -91,7 +108,8 @@ def build_workspace(workspace, build_name, compiler):
         if builder == None:
             print "Build config not found !"
             exit()
-        
+            
+        builder.verbose_lvl = verbosity
         builder.do_clean()
         
         if not builder.build_objects():
@@ -102,9 +120,35 @@ def build_workspace(workspace, build_name, compiler):
             exit()
         
         print p.name + " builded with success !"
+        
+        for d in p.depends:
+            
+            pfile = os.path.basename(d)
+            
+            pdep = workspace.get_project_by_pfile(pfile)
+            
+            if not pdep == None:
+                bdep = pdep.parser.get_build(build_name)
+                
+                if not bdep == None:
+                    #copying dll
+                    src = os.path.join(pdep.name, bdep.output)
+                    dst = os.path.join(p.name, os.path.dirname(builder.output), os.path.basename(src))
+                    
+                    if verbosity >= 3:
+                        print "Copying " + src + " -> " + dst
+                        
+                    shutil.copy(src, dst)
 
     if not fpymake == None:
         fpymake.do_post_build()
+
+    
+    ts = time.time() - start_tm
+    
+    print "Workspace builded in " + str(ts) + " sec(s)"
+    
+    print "Build completed !"
 
 def print_help():
     print "----------------------------------------"
@@ -116,6 +160,7 @@ def print_help():
     print "-P:$path -> project path or project file"
     print "-B:$build -> Build configuration to compile"
     print "-BN:$build_version -> Build Version"
+    print "-V:$level -> Verbosity level of the building"
     print "-PACK -> zip package of the compiled project (NOT IMPLEMENTED)"
     print "----------------------------------------"
 
@@ -132,6 +177,7 @@ if __name__ == '__main__':
     pfile = None
     build_name = None
     build_num = "0"
+    verbosity = 0
     ia = 0
     for args in sys.argv:
         
@@ -155,6 +201,9 @@ if __name__ == '__main__':
             elif args.startswith("-HELP"):
                 print_help()
                 exit()
+            elif args.startswith("-V:"):
+                verbosity = int(args[3:])
+                
         
         ia = ia + 1
     
@@ -175,14 +224,14 @@ if __name__ == '__main__':
                 parser = ide_project.codeblock_parser(os.path.join(pfile, f))
                 parser.parse()
             
-                build_project(parser, build_name, compiler)
+                build_project(parser, build_name, compiler, verbosity)
                 
             elif f.endswith('.workspace'):
                 #workspace file
                 workspace = ide_project.codeblock_workspace_parser(os.path.join(pfile, f))
                 workspace.parse()
             
-                build_workspace(workspace, build_name, compiler)
+                build_workspace(workspace, build_name, compiler, verbosity)
     else:
     
         if pfile.endswith('.cbp'):
@@ -190,15 +239,15 @@ if __name__ == '__main__':
             parser = ide_project.codeblock_parser(pfile)
             parser.parse()
             
-            build_project(parser, build_name, compiler)
+
+            build_project(parser, build_name, compiler, verbosity)
+            
             
         elif pfile.endswith('.workspace'):
             #workspace file
             
             workspace = ide_project.codeblock_workspace_parser(pfile)
             workspace.parse()
-            
-            
-            build_workspace(workspace, build_name, compiler)
-        
-    
+
+            build_workspace(workspace, build_name, compiler, verbosity)
+                    
