@@ -5,6 +5,29 @@ import sys
 import shutil
 import time
 
+class filesize:
+    
+    def __init__(self, fsize):
+        self.size = float(fsize)
+        
+    def get_str(self):
+        
+        kb = self.size / 1024
+        mb = kb / 1024
+        gb = mb / 2014
+        
+        if gb >= 1:
+            #gb output format
+            return "{:4.3f}".format(gb) + " GB(s)"
+        elif mb >= 1:
+            return "{:4.3f}".format(mb) + " MB(s)"
+        elif kb >= 1:
+            return "{:4.3f}".format(kb) + " KB(s)"
+        else:
+            return "{:4.3f}".format(self.size) + " B(s)"
+        
+        
+
 def search_pymake(dpath):
     
     pymake_f = None
@@ -67,8 +90,12 @@ def build_project(parser, build_name, compiler, verbosity):
         
     ts = time.time() - start_tm
     
-    print "Project builded in " + str(ts) + " sec(s)"
-        
+    print "Project builded in " + "{:10.4f}".format(ts) + " sec(s)"
+    
+    fsize = filesize(os.path.getsize(os.path.join(builder.projname, builder.output)))
+    
+    print "Output size : " + fsize.get_str()
+    
     print "Build completed !"
 
 def build_workspace(workspace, build_name, compiler, verbosity):
@@ -121,6 +148,10 @@ def build_workspace(workspace, build_name, compiler, verbosity):
         
         print p.name + " builded with success !"
         
+        fsize = filesize(os.path.getsize(os.path.join(builder.projname, builder.output)))
+    
+        print "Output size : " + fsize.get_str()
+        
         for d in p.depends:
             
             pfile = os.path.basename(d)
@@ -146,7 +177,7 @@ def build_workspace(workspace, build_name, compiler, verbosity):
     
     ts = time.time() - start_tm
     
-    print "Workspace builded in " + str(ts) + " sec(s)"
+    print "Workspace builded in " + "{:10.4f}".format(ts) + " sec(s)"
     
     print "Build completed !"
 

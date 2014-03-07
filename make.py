@@ -414,13 +414,21 @@ class script:
     
     def __init__(self, spath):
         self.path = spath
-        self.working_dir = None
+        #self.working_dir = None
         self.args = []
         
     def run(self):
         
         return None
 
+class script_var:
+    
+    def __init__(self, vname, value):
+        self.name = vname
+        self.value = value
+        
+    def replace(self, _str):
+        return _str.replace("${"+self.name+"}", self.value)
 
 class pymake_file:
     
@@ -429,7 +437,20 @@ class pymake_file:
         self.posts = []
         self.pres = []
         self.verbose_lvl = 0
+        self.vars = []
+        
+    def add_var(self, name, value):
+        sv = script_var(name, value)
+        
+        self.vars.append(sv)
 
+    def replace_vars(self, _str):
+        
+        for v in self.vars:
+            _str = v.replace(_str)
+            
+        return _str
+        
 
     def read(self):
         
@@ -449,10 +470,7 @@ class pymake_file:
                 ps = script(args[0])
                 
                 for a in args:
-                    if i == 1:
-                        #working_dir
-                        ps.working_dir = a
-                    elif not i == 0:
+                    if not i == 0:
                         ps.args.append(a)
                     i = i + 1
                     
@@ -464,9 +482,7 @@ class pymake_file:
                 ps = script(args[0])
                 
                 for a in args:
-                    if i == 1:
-                        ps.working_dir = a
-                    elif not i == 0:
+                    if not i == 0:
                         ps.args.append(a)
                         
                     i = i + 1
@@ -479,6 +495,7 @@ class pymake_file:
         args.append(s.path)
             
         for a in s.args:
+            a = self.replace_vars(a)
             args.append(a)
             
         if self.verbose_lvl >= 2:
