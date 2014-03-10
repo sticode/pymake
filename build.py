@@ -54,7 +54,13 @@ def build_project(parser, build_name, compiler, verbosity):
     if not fpymake == None:
         fpymake.do_pre_build()
         fpymake.verbose_lvl = verbosity
-    
+        fpymake.add_var('BUILD', build_name)
+        fpymake.add_var('ROOT', parser.root)
+        fpymake.add_var('G++', compiler.gpp)
+        fpymake.add_var('CPATH', compiler.gpp_path)
+        fpymake.add_var('GC', compiler.gcc)
+        fpymake.add_var('BUILD_NUM', str(compiler.build_num))
+        
     print "Compiling project : " + parser.project_name
     
     if build_name == None:
@@ -106,6 +112,12 @@ def build_workspace(workspace, build_name, compiler, verbosity):
     if not fpymake == None:
         fpymake.do_pre_build()
         fpymake.verbose_lvl = verbosity
+        fpymake.add_var('BUILD', build_name)
+        fpymake.add_var('ROOT', workspace.root)
+        fpymake.add_var('G++', compiler.gpp)
+        fpymake.add_var('CPATH', compiler.gpp_path)
+        fpymake.add_var('GC', compiler.gcc)
+        fpymake.add_var('BUILD_NUM', str(compiler.build_num))
     
     print "Compiling workspace : " + workspace.name
     
