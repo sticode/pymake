@@ -427,8 +427,12 @@ class script_var:
         self.name = vname
         self.value = value
         
-    def replace(self, _str):
-        return _str.replace("${"+self.name+"}", self.value)
+    def replace_var(self, arg):
+        if not arg == None:
+            var_str = "${"+ self.name +"}"
+            return arg.replace(var_str , str(self.value))
+        else:
+            return None
 
 class pymake_file:
     
@@ -444,12 +448,12 @@ class pymake_file:
         
         self.vars.append(sv)
 
-    def replace_vars(self, _str):
+    def replace_vars(self, arg):
         
         for v in self.vars:
-            _str = v.replace(_str)
+            arg = v.replace_var(arg)
             
-        return _str
+        return arg
         
 
     def read(self):
@@ -495,6 +499,7 @@ class pymake_file:
         args.append(s.path)
             
         for a in s.args:
+            print a + " -> " + str(len(a))
             a = self.replace_vars(a)
             args.append(a)
             

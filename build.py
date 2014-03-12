@@ -50,7 +50,11 @@ def build_project(parser, build_name, compiler, verbosity):
     start_tm = time.time()
     
     fpymake = search_pymake(parser.root)
-    
+
+    if build_name == None:
+        b = parser.get_builds()
+        build_name = b[0]
+
     if not fpymake == None:
         fpymake.do_pre_build()
         fpymake.verbose_lvl = verbosity
@@ -62,10 +66,6 @@ def build_project(parser, build_name, compiler, verbosity):
         fpymake.add_var('BUILD_NUM', str(compiler.build_num))
         
     print "Compiling project : " + parser.project_name
-    
-    if build_name == None:
-        b = parser.get_builds()
-        build_name = b[0]
     
     print "Build Config : " + build_name
     
@@ -109,6 +109,16 @@ def build_workspace(workspace, build_name, compiler, verbosity):
     start_tm = time.time()
     
     fpymake = search_pymake(workspace.root)
+
+    for project in workspace.projects:
+        project.parser.parse()
+
+
+    if build_name == None:
+        #build_name = 'Release' #need to get first build from projects
+        b = workspace.get_builds()
+        build_name = b[0]
+    
     if not fpymake == None:
         fpymake.do_pre_build()
         fpymake.verbose_lvl = verbosity
@@ -120,15 +130,7 @@ def build_workspace(workspace, build_name, compiler, verbosity):
         fpymake.add_var('BUILD_NUM', str(compiler.build_num))
     
     print "Compiling workspace : " + workspace.name
-    
-    for project in workspace.projects:
-        project.parser.parse()
-    
-    if build_name == None:
-        #build_name = 'Release' #need to get first build from projects
-        b = workspace.get_builds()
-        build_name = b[0]
-        
+
     
     print "Build Config : " + build_name
     
