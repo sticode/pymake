@@ -6,7 +6,62 @@ import sys
 import os
 import ide_project
 import make
-from PyQt4 import QtGui
+import subprocess
+from PyQt4 import QtGui, QtCore
+
+class launcher(QtGui.QDialog):
+    
+    def __init__(self, parent, args):
+        QtGui.QDialog.__init__(self, parent)
+        
+        self.init_ui()
+        self.args = args
+        self.process = None
+        
+    def init_ui(self):
+        
+        self.tb_log = QtGui.QTextEdit(self)
+        
+        self.timer = QtCore.QBasicTimer()
+        self.step = 0
+        
+        self.tb_log.move(0, 0)
+        self.tb_log.resize(300, 300)
+        self.tb_log.setReadOnly(True)
+        
+        self.setGeometry(150, 150, 300, 400)
+        self.setWindowTitle("Build")
+        self.show()
+        
+    def timerEvent(self, e):
+        self.read_line()
+        self.step = self.step + 1
+        
+        if self.step > 10:
+            self.timer.stop()
+    
+    def read_line(self):
+        
+        if not self.process == None:
+            
+            line = self.process.stdout.readline().rstrip("\n")
+            
+            if len(line) > 0:
+                self.tb_log.append(line)
+            
+            
+            line = self.process.stderr.readline().rstrip("\n")
+            
+            if len(line) > 0:
+                self.tb_log.append(line)
+            
+            #print self.process.poll()
+            
+    
+    def run(self):
+        
+        self.process = subprocess.Popen(self.args , stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        self.timer.start(100, self)
 
 class workspace_handler:
     
@@ -297,7 +352,20 @@ class main_frame(QtGui.QMainWindow):
         self.show()
 
     def build(self):
-        print "todo"
+        
+        if self.handler.is_workspace():
+            
+            pfile = self.handler.workspace.wspace
+            
+            args = []
+            args.append('python')
+            args.append('build.py')
+            args.append('-P:'+pfile)
+            
+            launch = launcher(self, args)
+            
+            launch.run()
+            
 
     def open_compiler_dialog(self):
         
