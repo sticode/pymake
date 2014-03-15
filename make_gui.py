@@ -21,7 +21,7 @@ class launcher(QtGui.QDialog):
     def init_ui(self):
         
         self.tb_log = QtGui.QTextEdit(self)
-        
+
         self.timer = QtCore.QBasicTimer()
         self.step = 0
         
@@ -32,35 +32,30 @@ class launcher(QtGui.QDialog):
         self.setGeometry(150, 150, 300, 400)
         self.setWindowTitle("Build")
         self.show()
-        
+
     def timerEvent(self, e):
-        self.read_line()
         self.step = self.step + 1
-        
-        if self.step > 10:
+
+        if self.step > 1000:
             self.timer.stop()
+        elif not self.process == None:
+            line = self.process.readLine()
+            print str(line.data())
+            self.tb_log.append(line.data())
+
+        print "ho!"
+
     
-    def read_line(self):
-        
-        if not self.process == None:
-            
-            line = self.process.stdout.readline().rstrip("\n")
-            
-            if len(line) > 0:
-                self.tb_log.append(line)
-            
-            
-            line = self.process.stderr.readline().rstrip("\n")
-            
-            if len(line) > 0:
-                self.tb_log.append(line)
-            
-            #print self.process.poll()
-            
+    def process_started(self):
+        self.tb_log.append("Build started!")
     
     def run(self):
+        self.process = QtCore.QProcess(self)
+        self.process.setProcessChannelMode(QtCore.QProcess.SeparateChannels)
+        self.process.setReadChannel(QtCore.QProcess.StandardOutput)
+        self.process.started.connect(self.process_started)
+        self.process.startDetached("python", self.args)
         
-        self.process = subprocess.Popen(self.args , stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         self.timer.start(100, self)
 
 class workspace_handler:
@@ -358,7 +353,6 @@ class main_frame(QtGui.QMainWindow):
             pfile = self.handler.workspace.wspace
             
             args = []
-            args.append('python')
             args.append('build.py')
             args.append('-P:'+pfile)
             
