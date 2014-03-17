@@ -8,56 +8,8 @@ import ide_project
 import make
 import subprocess
 from PyQt4 import QtGui, QtCore
-
-class launcher(QtGui.QDialog):
-    
-    def __init__(self, parent, args):
-        QtGui.QDialog.__init__(self, parent)
+   
         
-        self.init_ui()
-        self.args = args
-        self.process = None
-        
-    def init_ui(self):
-        
-        self.tb_log = QtGui.QTextEdit(self)
-
-        self.timer = QtCore.QBasicTimer()
-        self.step = 0
-        
-        self.tb_log.move(0, 0)
-        self.tb_log.resize(300, 300)
-        self.tb_log.setReadOnly(True)
-        
-        self.setGeometry(150, 150, 300, 400)
-        self.setWindowTitle("Build")
-        self.show()
-
-    def timerEvent(self, e):
-        self.step = self.step + 1
-
-        if self.step > 1000:
-            self.timer.stop()
-        elif not self.process == None:
-            line = self.process.readLine()
-            print str(line.data())
-            self.tb_log.append(line.data())
-
-        print "ho!"
-
-    
-    def process_started(self):
-        self.tb_log.append("Build started!")
-    
-    def run(self):
-        self.process = QtCore.QProcess(self)
-        self.process.setProcessChannelMode(QtCore.QProcess.SeparateChannels)
-        self.process.setReadChannel(QtCore.QProcess.StandardOutput)
-        self.process.started.connect(self.process_started)
-        self.process.startDetached("python", self.args)
-        
-        self.timer.start(100, self)
-
 class workspace_handler:
     
     def __init__(self, workspace):
@@ -356,10 +308,13 @@ class main_frame(QtGui.QMainWindow):
             args.append('build.py')
             args.append('-P:'+pfile)
             
-            launch = launcher(self, args)
+            build_name = str(self.cbox_builds.currentText())
+
+            args.append("-B:"+build_name)
+
+            self.process = QtCore.QProcess(self)
             
-            launch.run()
-            
+            self.process.startDetached("python", args)
 
     def open_compiler_dialog(self):
         
