@@ -499,7 +499,7 @@ class pymake_file:
         args.append(s.path)
             
         for a in s.args:
-            print a + " -> " + str(len(a))
+            #print a + " -> " + str(len(a))
             a = self.replace_vars(a)
             args.append(a)
             
