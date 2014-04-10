@@ -442,6 +442,8 @@ class pymake_file:
         self.pres = []
         self.verbose_lvl = 0
         self.vars = []
+        self.externs = []
+        self.db_persist = False
         
     def add_var(self, name, value):
         sv = script_var(name, value)
@@ -465,6 +467,7 @@ class pymake_file:
         fp.close()
         
         for l in lines:
+            l = l.strip('\n')
             l = l.strip()
             
             if l.startswith('post:'):
@@ -490,8 +493,16 @@ class pymake_file:
                         ps.args.append(a)
                         
                     i = i + 1
-                    
                 self.pres.append(ps)
+                
+            elif l.startswith("extern:"):
+                ext = l[7:]
+                self.externs.append(ext)
+            
+            elif l.startswith("db:"):
+                db = l[3:]
+                if db.endswith('true'):
+                    self.db_persist = True
 
     def run_script(self, s):
         args = []
