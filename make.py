@@ -4,9 +4,11 @@ import sys
 import shutil
 import datetime
 import zipfile
+import cmsg
 
 #Python building script
 #Author : Jord Sti (jord52@gmail.com)
+
 
 class packer:
 
@@ -318,6 +320,22 @@ class build_project:
 
             if not errtxt.find("error:") == -1:
                 build_failed = True
+
+                msgs = errtxt.split('^')
+                #verbose 3 is required to debug this new dev feature
+                if self.verbose_lvl >= 3:
+                    for m in msgs:
+                        print "Compiler message !!"
+                        m = m + '^'
+                        msg = cmsg.compiler_message(m)
+                        print 'length : ', len(m)
+                        if msg.src_pos is None:
+                            print 'SRC POS IS NONE!!!'
+                            print m
+                            continue
+
+                        msg.print_data()
+
                 self.log.std_err(errtxt)
 
             if build_failed:
