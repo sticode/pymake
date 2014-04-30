@@ -10,6 +10,7 @@
 *.pdb
 *.suo
 *.obj
+.idea/*
 */bin/*
 */obj/*
 #bin/*
